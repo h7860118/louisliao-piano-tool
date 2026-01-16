@@ -1,530 +1,286 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LouisLiao Piano – Practice Tools</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LouisLiao Piano – Practice Tool</title>
 
-  <style>
-    *{ box-sizing:border-box; }
-    html, body{ width:100%; margin:0; padding:0; }
-    body{
-      font-family: ui-sans-serif, system-ui, -apple-system, "PingFang TC","Microsoft JhengHei", sans-serif;
-      background: radial-gradient(1100px 600px at 20% 0%, #1b1b1f 0%, #0c0c0f 50%, #07070a 100%);
-      color:#f4f4f4;
-      display:flex;
-      justify-content:center;
-      padding:24px;
-      overflow-x:hidden;
-    }
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:24px;
+  font-family: system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  background:radial-gradient(1200px 600px at 20% 0%,#1b1b1f,#0b0b0f 55%,#07070a);
+  color:#f5f5f5;
+}
+.wrap{max-width:980px;margin:auto}
 
-    :root{
-      --panel: rgba(255,255,255,.06);
-      --border: rgba(255,255,255,.10);
-      --muted: rgba(255,255,255,.62);
-      --gold: #d4b15f;
-      --shadow: rgba(0,0,0,.45);
-    }
+/* Header */
+.header{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 18px 50px rgba(0,0,0,.45);
+}
+.title{
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.sub{
+  font-size:12px;
+  letter-spacing:.12em;
+  color:rgba(255,255,255,.65);
+  margin-top:4px;
+}
+.toolbar{
+  display:flex;
+  gap:12px;
+  margin-top:14px;
+  flex-wrap:wrap;
+}
+.card{
+  flex:1 1 260px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.label{
+  font-size:12px;
+  letter-spacing:.08em;
+  color:rgba(255,255,255,.65);
+}
+.btn{
+  padding:8px 12px;
+  border-radius:12px;
+  border:1px solid rgba(212,177,95,.45);
+  background:rgba(212,177,95,.18);
+  color:#f6e7bd;
+  font-weight:800;
+  cursor:pointer;
+}
+.btn.off{
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.2);
+  color:#fff;
+}
+.slider{
+  flex:1;
+  accent-color:#d4b15f;
+}
+.badge{
+  margin-left:auto;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(212,177,95,.45);
+  background:rgba(212,177,95,.18);
+  font-weight:800;
+  letter-spacing:.08em;
+}
 
-    .wrap{ width:min(980px, 100%); }
-
-    /* Header */
-    .header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      flex-wrap:wrap;
-      padding: 14px 16px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      border: 1px solid var(--border);
-      box-shadow: 0 18px 55px var(--shadow);
-      margin-bottom: 14px;
-    }
-
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width: 240px;
-      flex: 1 1 260px;
-    }
-    .brand .name{
-      font-weight: 900;
-      letter-spacing: .08em;
-      font-size: 22px;
-      line-height:1.2;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .brand .tag{
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: .10em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .toolbar{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      flex: 1 1 320px;
-      min-width:0;
-    }
-
-    .card{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: var(--panel);
-      border:1px solid var(--border);
-      min-width:0;
-      flex: 1 1 260px;
-    }
-
-    .label{
-      font-size: 12px;
-      letter-spacing:.08em;
-      color: var(--muted);
-      white-space:nowrap;
-    }
-
-    .btn{
-      cursor:pointer;
-      border-radius: 12px;
-      border: 1px solid rgba(212,177,95,.35);
-      background: rgba(212,177,95,.12);
-      color: #f6e7bd;
-      padding: 9px 12px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      white-space:nowrap;
-    }
-    .btn.off{
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.08);
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .slider{
-      width: clamp(120px, 22vw, 190px);
-      accent-color: var(--gold);
-      max-width:100%;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(212,177,95,.35);
-      background: rgba(212,177,95,.10);
-      color: #f6e7bd;
-      font-weight: 800;
-      letter-spacing: .08em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .dot{
-      width:8px; height:8px;
-      border-radius:99px;
-      background: var(--gold);
-      box-shadow: 0 0 0 4px rgba(212,177,95,.15);
-      flex: 0 0 auto;
-    }
-    .hint{
-      margin: 10px 4px 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-      word-break: break-word;
-    }
-    code.kbd{
-      background: rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.16);
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      color:#fff;
-      white-space:nowrap;
-    }
-
-    /* Keyboard panel */
-    .panel{
-      margin-top: 14px;
-      border-radius: 18px;
-      padding: 16px;
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 60px var(--shadow);
-    }
-
-    .keyboard{
-      position: relative;
-      height: 270px;
-      border-radius: 16px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border: 1px solid rgba(255,255,255,.10);
-      user-select:none;
-      touch-action: manipulation;
-    }
-
-    .white-keys{ position:absolute; inset:0; display:flex; }
-    .wkey{
-      flex: 1 1 0;
-      background: linear-gradient(180deg, #ffffff, #ececf0);
-      border-right: 1px solid rgba(0,0,0,.12);
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      padding-bottom: 12px;
-      font-weight: 800;
-      color: rgba(0,0,0,.35);
-      font-size: 13px;
-      min-width:0;
-    }
-    .wkey:last-child{ border-right:0; }
-    .wkey.active{
-      box-shadow: inset 0 0 0 999px rgba(212,177,95,.22);
-    }
-
-    .black-keys{ position:absolute; inset:0; pointer-events:none; }
-    .bkey{
-      position:absolute;
-      top:0;
-      width: 6.2%;
-      height: 62%;
-      background: linear-gradient(180deg, #2b2b32, #0b0b10);
-      border-radius: 0 0 10px 10px;
-      box-shadow: 0 12px 18px rgba(0,0,0,.60);
-      border: 1px solid rgba(255,255,255,.08);
-      pointer-events:auto;
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      padding-bottom: 10px;
-      font-weight: 800;
-      color: rgba(255,255,255,.38);
-      font-size: 11px;
-      overflow:hidden;
-    }
-    .bkey.active{
-      box-shadow: 0 12px 18px rgba(0,0,0,.60), inset 0 0 0 999px rgba(212,177,95,.20);
-    }
-
-    .footer{
-      margin-top: 12px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.7;
-      word-break: break-word;
-    }
-
-    @media (max-width: 900px){
-      body{ padding: 12px; }
-      .toolbar{ justify-content: stretch; }
-      .card{ flex: 1 1 100%; }
-      .slider{ width: clamp(120px, 45vw, 210px); }
-    }
-    @media (max-width: 520px){
-      .keyboard{ height: 225px; }
-      .brand .name{ font-size: 20px; }
-    }
-  </style>
+/* Keyboard */
+.panel{
+  margin-top:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+.keyboard{
+  position:relative;
+  height:280px;
+  border-radius:14px;
+  overflow:hidden;
+  background:linear-gradient(180deg,#f8f8f8,#e9e9ee);
+}
+.white-keys{
+  display:flex;
+  height:100%;
+}
+.wkey{
+  flex:1;
+  border-right:1px solid rgba(0,0,0,.15);
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  padding-bottom:10px;
+  font-weight:700;
+  color:rgba(0,0,0,.35);
+}
+.wkey.active{
+  box-shadow:inset 0 0 0 999px rgba(212,177,95,.25);
+}
+.black-keys{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.bkey{
+  position:absolute;
+  top:0;
+  width:5.8%;
+  height:62%;
+  background:linear-gradient(180deg,#2a2a2f,#0b0b0f);
+  border-radius:0 0 10px 10px;
+  box-shadow:0 12px 18px rgba(0,0,0,.6);
+  pointer-events:auto;
+}
+.bkey.active{
+  box-shadow:inset 0 0 0 999px rgba(212,177,95,.25),0 12px 18px rgba(0,0,0,.6);
+}
+.footer{
+  margin-top:10px;
+  font-size:13px;
+  color:rgba(255,255,255,.6);
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="header">
-      <div class="brand">
-        <div class="name">LouisLiao Piano</div>
-        <div class="tag">Practice Tools · Web MIDI · Metronome</div>
+<div class="wrap">
+
+  <div class="header">
+    <div class="title">LouisLiao Piano</div>
+    <div class="sub">Web Practice Tool · 3 Octaves</div>
+
+    <div class="toolbar">
+      <div class="card">
+        <span class="label">METRONOME</span>
+        <button id="metroBtn" class="btn off">OFF</button>
+        <span class="label">BPM <b id="bpmText">120</b></span>
+        <input id="bpm" class="slider" type="range" min="40" max="220" value="120">
       </div>
-
-      <div class="toolbar">
-        <div class="card" style="flex:1 1 360px;">
-          <span class="label">METRONOME</span>
-          <button id="metroBtn" class="btn off" type="button">OFF</button>
-          <span style="flex:1 1 auto;"></span>
-          <span class="label">TEMPO: <b><span id="bpmText">120</span> BPM</b></span>
-          <input id="bpm" class="slider" type="range" min="40" max="220" value="120" />
-        </div>
-
-        <div class="card" style="flex:0 1 260px; justify-content:space-between;">
-          <span class="label">MIDI</span>
-          <span class="badge" id="midiStatus"><span class="dot"></span>CHECKING…</span>
-        </div>
-      </div>
-
-      <div class="hint">
-        點鍵盤 / 用電腦鍵盤 <code class="kbd">A S D F G H J K</code>（C4~C5）。
-        若瀏覽器支援 Web MIDI，插上 MIDI 鍵盤後也可直接彈奏。
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="keyboard" id="keyboard">
-        <div class="white-keys" id="whiteKeys"></div>
-        <div class="black-keys" id="blackKeys"></div>
-      </div>
-
-      <div class="footer">
-        建議使用桌面 Chrome/Edge 取得最佳 Web MIDI 體驗；iPhone/iPad 的 Safari 對 Web MIDI 支援有限。
+      <div class="card">
+        <span class="label">MIDI</span>
+        <span id="midiStatus" class="badge">CHECKING…</span>
       </div>
     </div>
   </div>
 
+  <div class="panel">
+    <div class="keyboard">
+      <div class="white-keys" id="whiteKeys"></div>
+      <div class="black-keys" id="blackKeys"></div>
+    </div>
+    <div class="footer">
+      電腦鍵盤：A S D F G H J K（對齊中間 C4）
+    </div>
+  </div>
+
+</div>
+
 <script>
-(() => {
-  // ---------- Audio ----------
-  let audioCtx = null;
-  const activeVoices = new Map();
+(()=>{
 
-  function ensureAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+/* ====== CONFIG: 三個八度（和你貼的那張一樣） ====== */
+const START = 48; // C3
+const END   = 84; // C6
+
+/* ====== AUDIO ====== */
+let ctx;
+const voices=new Map();
+const freq=m=>440*Math.pow(2,(m-69)/12);
+const ensure=()=>{ctx??=new(AudioContext||webkitAudioContext)();ctx.resume()};
+const on=(m,v=100)=>{
+  ensure();
+  if(voices.has(m))return;
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type="sine";o.frequency.value=freq(m);
+  g.gain.setValueAtTime(.001,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.25,ctx.currentTime+.01);
+  o.connect(g).connect(ctx.destination);
+  o.start();
+  voices.set(m,{o,g});
+  key(m,true);
+};
+const off=m=>{
+  const v=voices.get(m);if(!v)return;
+  v.g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.08);
+  v.o.stop(ctx.currentTime+.1);
+  voices.delete(m);
+  key(m,false);
+};
+
+/* ====== KEYS ====== */
+const isBlack=m=>[1,3,6,8,10].includes(m%12);
+const wl={0:"C",2:"D",4:"E",5:"F",7:"G",9:"A",11:"B"};
+const wk=document.getElementById("whiteKeys");
+const bk=document.getElementById("blackKeys");
+const mapEl=new Map();
+const whites=[];
+for(let m=START;m<=END;m++)if(!isBlack(m))whites.push(m);
+whites.forEach(m=>{
+  const d=document.createElement("div");
+  d.className="wkey";d.textContent=wl[m%12]||"";
+  d.onpointerdown=e=>{e.preventDefault();on(m);d.setPointerCapture(e.pointerId)};
+  d.onpointerup=()=>off(m);
+  wk.appendChild(d);
+  mapEl.set(m,d);
+});
+const idx=m=>whites.filter(w=>w<m).length;
+for(let m=START;m<=END;m++){
+  if(!isBlack(m))continue;
+  const d=document.createElement("div");
+  d.className="bkey";
+  const p=(idx(m)-1)/whites.length*100;
+  d.style.left=`calc(${p}% + ${(100/whites.length)*.7}%)`;
+  d.onpointerdown=e=>{e.preventDefault();on(m);d.setPointerCapture(e.pointerId)};
+  d.onpointerup=()=>off(m);
+  bk.appendChild(d);
+  mapEl.set(m,d);
+}
+const key=(m,a)=>mapEl.get(m)?.classList.toggle("active",a);
+
+/* ====== COMPUTER KEYS ====== */
+const kmap={a:60,s:62,d:64,f:65,g:67,h:69,j:71,k:72};
+const down=new Set();
+onkeydown=e=>{const k=e.key.toLowerCase();if(kmap[k]&&!down.has(k)){down.add(k);on(kmap[k])}};
+onkeyup=e=>{const k=e.key.toLowerCase();if(kmap[k]){down.delete(k);off(kmap[k])}};
+
+/* ====== METRONOME ====== */
+let bpm=120,timer=null,onM=false;
+const btn=document.getElementById("metroBtn");
+const bpmEl=document.getElementById("bpm");
+const bpmT=document.getElementById("bpmText");
+const click=()=>{
+  ensure();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.frequency.value=1400;o.type="square";
+  g.gain.setValueAtTime(.001,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.2,ctx.currentTime+.01);
+  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.04);
+  o.connect(g).connect(ctx.destination);
+  o.start();o.stop(ctx.currentTime+.05);
+};
+btn.onclick=()=>{
+  onM=!onM;
+  btn.textContent=onM?"ON":"OFF";
+  btn.classList.toggle("off",!onM);
+  clearInterval(timer);
+  if(onM){click();timer=setInterval(click,60000/bpm);}
+};
+bpmEl.oninput=()=>{bpm=bpmEl.value;bpmT.textContent=bpm;if(onM){clearInterval(timer);timer=setInterval(click,60000/bpm);}};
+
+/* ====== MIDI ====== */
+const ms=document.getElementById("midiStatus");
+navigator.requestMIDIAccess?.().then(acc=>{
+  ms.textContent="READY";
+  for(const i of acc.inputs.values()){
+    i.onmidimessage=e=>{
+      const[c,n,v]=e.data;
+      if((c&0xf0)==0x90&&v>0)on(n,v);
+      else if((c&0xf0)==0x80||(c&0xf0)==0x90&&v==0)off(n);
+    };
   }
-  function midiToFreq(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+}).catch(()=>ms.textContent="BLOCKED");
 
-  function noteOn(midi, velocity=100){
-    ensureAudio();
-    if (activeVoices.has(midi)) return;
-
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = "sine";
-    osc.frequency.value = midiToFreq(midi);
-
-    const v = Math.max(0, Math.min(127, velocity));
-    const amp = 0.02 + (v/127) * 0.23;
-
-    const now = audioCtx.currentTime;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(amp, now + 0.01);
-
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(now);
-
-    activeVoices.set(midi, {osc, gain});
-    highlightKey(midi, true);
-  }
-
-  function noteOff(midi){
-    const voice = activeVoices.get(midi);
-    if (!voice || !audioCtx) return;
-
-    const now = audioCtx.currentTime;
-    voice.gain.gain.cancelScheduledValues(now);
-    voice.gain.gain.setValueAtTime(Math.max(voice.gain.gain.value, 0.0001), now);
-    voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-    voice.osc.stop(now + 0.09);
-
-    activeVoices.delete(midi);
-    highlightKey(midi, false);
-  }
-
-  // ---------- Keyboard UI ----------
-  const START = 60; // C4
-  const END = 84;   // C6
-
-  function isBlack(m){
-    const pc = m % 12;
-    return [1,3,6,8,10].includes(pc);
-  }
-
-  const keyEls = new Map();
-  const whiteKeysEl = document.getElementById("whiteKeys");
-  const blackKeysEl = document.getElementById("blackKeys");
-
-  const whites = [];
-  for (let m = START; m <= END; m++) if (!isBlack(m)) whites.push(m);
-
-  function whiteLabel(pc){
-    const map = {0:"C",2:"D",4:"E",5:"F",7:"G",9:"A",11:"B"};
-    return map[pc] || "";
-  }
-
-  whites.forEach((m) => {
-    const div = document.createElement("div");
-    div.className = "wkey";
-    div.dataset.midi = String(m);
-    div.textContent = whiteLabel(m % 12);
-
-    div.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      noteOn(m, 110);
-      div.setPointerCapture(e.pointerId);
-    });
-    div.addEventListener("pointerup", () => noteOff(m));
-    div.addEventListener("pointercancel", () => noteOff(m));
-
-    whiteKeysEl.appendChild(div);
-    keyEls.set(m, div);
-  });
-
-  function whiteIndexForMidi(midi){
-    let count = 0;
-    for (let m = START; m < midi; m++) if (!isBlack(m)) count++;
-    return count;
-  }
-
-  for (let m = START; m <= END; m++){
-    if (!isBlack(m)) continue;
-
-    const leftWhiteIdx = whiteIndexForMidi(m) - 1;
-    const totalWhites = whites.length;
-    const leftPct = (leftWhiteIdx / totalWhites) * 100;
-    const wPct = 100 / totalWhites;
-
-    const div = document.createElement("div");
-    div.className = "bkey";
-    div.dataset.midi = String(m);
-
-    const pc = m % 12;
-    div.textContent = ({1:"C#",3:"D#",6:"F#",8:"G#",10:"A#"}[pc] || "");
-    div.style.left = `calc(${leftPct}% + ${wPct*0.68}%)`;
-
-    div.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      noteOn(m, 110);
-      div.setPointerCapture(e.pointerId);
-    });
-    div.addEventListener("pointerup", () => noteOff(m));
-    div.addEventListener("pointercancel", () => noteOff(m));
-
-    blackKeysEl.appendChild(div);
-    keyEls.set(m, div);
-  }
-
-  function highlightKey(midi, on){
-    const el = keyEls.get(midi);
-    if (!el) return;
-    el.classList.toggle("active", !!on);
-  }
-
-  // ---------- Computer keyboard mapping ----------
-  const map = {"a":60,"s":62,"d":64,"f":65,"g":67,"h":69,"j":71,"k":72};
-  const down = new Set();
-
-  window.addEventListener("keydown", (e) => {
-    const k = e.key.toLowerCase();
-    if (!(k in map) || down.has(k)) return;
-    down.add(k);
-    noteOn(map[k], 100);
-  });
-
-  window.addEventListener("keyup", (e) => {
-    const k = e.key.toLowerCase();
-    if (!(k in map)) return;
-    down.delete(k);
-    noteOff(map[k]);
-  });
-
-  // ---------- Metronome ----------
-  let metroOn = false;
-  let bpm = 120;
-  let metroTimer = null;
-
-  const metroBtn = document.getElementById("metroBtn");
-  const bpmEl = document.getElementById("bpm");
-  const bpmText = document.getElementById("bpmText");
-
-  function clickSound(){
-    ensureAudio();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "square";
-    osc.frequency.value = 1400;
-
-    const now = audioCtx.currentTime;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.001);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
-
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(now);
-    osc.stop(now + 0.04);
-  }
-
-  function startMetro(){
-    const intervalMs = Math.round(60000 / bpm);
-    clickSound();
-    metroTimer = setInterval(clickSound, intervalMs);
-  }
-  function stopMetro(){
-    if (metroTimer) clearInterval(metroTimer);
-    metroTimer = null;
-  }
-
-  function setMetroUI(){
-    if (metroOn){
-      metroBtn.textContent = "ON";
-      metroBtn.classList.remove("off");
-    }else{
-      metroBtn.textContent = "OFF";
-      metroBtn.classList.add("off");
-    }
-  }
-
-  metroBtn.addEventListener("click", () => {
-    metroOn = !metroOn;
-    ensureAudio();
-    stopMetro();
-    if (metroOn) startMetro();
-    setMetroUI();
-  });
-
-  bpmEl.addEventListener("input", () => {
-    bpm = Number(bpmEl.value);
-    bpmText.textContent = String(bpm);
-    if (metroOn) { stopMetro(); startMetro(); }
-  });
-
-  // ---------- Web MIDI ----------
-  const midiStatus = document.getElementById("midiStatus");
-
-  async function initMIDI(){
-    if (!navigator.requestMIDIAccess){
-      midiStatus.innerHTML = '<span class="dot"></span>UNSUPPORTED';
-      return;
-    }
-    try{
-      const access = await navigator.requestMIDIAccess();
-      midiStatus.innerHTML = '<span class="dot"></span>READY';
-
-      const bindInput = (input) => {
-        input.onmidimessage = (msg) => {
-          const [status, data1, data2] = msg.data;
-          const cmd = status & 0xF0;
-          if (cmd === 0x90 && data2 > 0) noteOn(data1, data2);
-          else if (cmd === 0x80 || (cmd === 0x90 && data2 === 0)) noteOff(data1);
-        };
-      };
-
-      for (const input of access.inputs.values()) bindInput(input);
-      access.onstatechange = () => {
-        for (const input of access.inputs.values()) bindInput(input);
-      };
-    }catch(e){
-      midiStatus.innerHTML = '<span class="dot"></span>BLOCKED';
-    }
-  }
-
-  initMIDI();
-  setMetroUI();
 })();
 </script>
 </body>
