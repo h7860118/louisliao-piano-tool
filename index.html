@@ -50,11 +50,13 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
+  min-width:0;
 }
 .label{
   font-size:12px;
   letter-spacing:.08em;
   color:rgba(255,255,255,.65);
+  white-space:nowrap;
 }
 .btn{
   padding:8px 12px;
@@ -71,7 +73,8 @@ body{
   color:#fff;
 }
 .slider{
-  flex:1;
+  flex:1 1 auto;
+  min-width:120px;
   accent-color:#d4b15f;
 }
 .badge{
@@ -82,6 +85,7 @@ body{
   background:rgba(212,177,95,.18);
   font-weight:800;
   letter-spacing:.08em;
+  white-space:nowrap;
 }
 
 /* Keyboard */
@@ -99,6 +103,8 @@ body{
   border-radius:14px;
   overflow:hidden;
   background:linear-gradient(180deg,#f8f8f8,#e9e9ee);
+  user-select:none;
+  touch-action: manipulation;
 }
 .white-keys{
   display:flex;
@@ -113,10 +119,13 @@ body{
   padding-bottom:10px;
   font-weight:700;
   color:rgba(0,0,0,.35);
+  min-width:0;
 }
+.wkey:last-child{border-right:0}
 .wkey.active{
   box-shadow:inset 0 0 0 999px rgba(212,177,95,.25);
 }
+
 .black-keys{
   position:absolute;
   inset:0;
@@ -125,7 +134,7 @@ body{
 .bkey{
   position:absolute;
   top:0;
-  width:5.8%;
+  /* ✅ 寬度改由 JS 動態指定（避免三個八度變窄時重疊） */
   height:62%;
   background:linear-gradient(180deg,#2a2a2f,#0b0b0f);
   border-radius:0 0 10px 10px;
@@ -135,6 +144,7 @@ body{
 .bkey.active{
   box-shadow:inset 0 0 0 999px rgba(212,177,95,.25),0 12px 18px rgba(0,0,0,.6);
 }
+
 .footer{
   margin-top:10px;
   font-size:13px;
@@ -179,7 +189,7 @@ body{
 <script>
 (()=>{
 
-/* ====== CONFIG: 三個八度（和你貼的那張一樣） ====== */
+/* ====== CONFIG: 三個八度（C3–C6） ====== */
 const START = 48; // C3
 const END   = 84; // C6
 
@@ -187,99 +197,175 @@ const END   = 84; // C6
 let ctx;
 const voices=new Map();
 const freq=m=>440*Math.pow(2,(m-69)/12);
-const ensure=()=>{ctx??=new(AudioContext||webkitAudioContext)();ctx.resume()};
-const on=(m,v=100)=>{
+const ensure=()=>{ ctx ??= new (window.AudioContext || window.webkitAudioContext)(); if(ctx.state==="suspended") ctx.resume(); };
+
+const noteOn=(m,v=100)=>{
   ensure();
-  if(voices.has(m))return;
-  const o=ctx.createOscillator(),g=ctx.createGain();
-  o.type="sine";o.frequency.value=freq(m);
-  g.gain.setValueAtTime(.001,ctx.currentTime);
-  g.gain.exponentialRampToValueAtTime(.25,ctx.currentTime+.01);
+  if(voices.has(m)) return;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type="sine"; o.frequency.value=freq(m);
+
+  const vel=Math.max(0,Math.min(127,v));
+  const amp=0.02 + (vel/127)*0.23;
+
+  const t=ctx.currentTime;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(amp,t+0.01);
+
   o.connect(g).connect(ctx.destination);
-  o.start();
+  o.start(t);
+
   voices.set(m,{o,g});
-  key(m,true);
-};
-const off=m=>{
-  const v=voices.get(m);if(!v)return;
-  v.g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.08);
-  v.o.stop(ctx.currentTime+.1);
-  voices.delete(m);
-  key(m,false);
+  highlight(m,true);
 };
 
-/* ====== KEYS ====== */
+const noteOff=(m)=>{
+  const v=voices.get(m);
+  if(!v || !ctx) return;
+  const t=ctx.currentTime;
+  v.g.gain.cancelScheduledValues(t);
+  v.g.gain.setValueAtTime(Math.max(v.g.gain.value,0.0001),t);
+  v.g.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+  v.o.stop(t+0.09);
+  voices.delete(m);
+  highlight(m,false);
+};
+
+/* ====== KEYBOARD UI ====== */
 const isBlack=m=>[1,3,6,8,10].includes(m%12);
-const wl={0:"C",2:"D",4:"E",5:"F",7:"G",9:"A",11:"B"};
+const whiteLabel={0:"C",2:"D",4:"E",5:"F",7:"G",9:"A",11:"B"};
+
 const wk=document.getElementById("whiteKeys");
 const bk=document.getElementById("blackKeys");
-const mapEl=new Map();
+const elMap=new Map();
+
 const whites=[];
-for(let m=START;m<=END;m++)if(!isBlack(m))whites.push(m);
+for(let m=START;m<=END;m++) if(!isBlack(m)) whites.push(m);
+
+const totalWhites = whites.length;
+const whitePct = 100 / totalWhites;       // 每顆白鍵的寬度（%）
+const blackPct = whitePct * 0.62;         // ✅ 黑鍵寬度跟著白鍵比例縮放
+const blackOffset = whitePct * 0.69;      // ✅ 黑鍵落在兩個白鍵之間略偏右（視覺像鋼琴）
+
 whites.forEach(m=>{
   const d=document.createElement("div");
-  d.className="wkey";d.textContent=wl[m%12]||"";
-  d.onpointerdown=e=>{e.preventDefault();on(m);d.setPointerCapture(e.pointerId)};
-  d.onpointerup=()=>off(m);
+  d.className="wkey";
+  d.textContent=whiteLabel[m%12] || "";
+  d.addEventListener("pointerdown",(e)=>{e.preventDefault(); noteOn(m,110); d.setPointerCapture(e.pointerId);});
+  d.addEventListener("pointerup",()=>noteOff(m));
+  d.addEventListener("pointercancel",()=>noteOff(m));
   wk.appendChild(d);
-  mapEl.set(m,d);
+  elMap.set(m,d);
 });
-const idx=m=>whites.filter(w=>w<m).length;
+
+// 回傳某個 midi 前面有幾顆白鍵
+const whiteIndexForMidi=(midi)=>{
+  let c=0;
+  for(let m=START;m<midi;m++) if(!isBlack(m)) c++;
+  return c;
+};
+
+// 生成黑鍵（位置與寬度都用動態計算，不會重疊）
 for(let m=START;m<=END;m++){
-  if(!isBlack(m))continue;
+  if(!isBlack(m)) continue;
+
+  const leftWhiteIdx = whiteIndexForMidi(m) - 1;   // 黑鍵左邊那顆白鍵 index
+  const leftPct = (leftWhiteIdx / totalWhites) * 100;
+
   const d=document.createElement("div");
   d.className="bkey";
-  const p=(idx(m)-1)/whites.length*100;
-  d.style.left=`calc(${p}% + ${(100/whites.length)*.7}%)`;
-  d.onpointerdown=e=>{e.preventDefault();on(m);d.setPointerCapture(e.pointerId)};
-  d.onpointerup=()=>off(m);
-  bk.appendChild(d);
-  mapEl.set(m,d);
-}
-const key=(m,a)=>mapEl.get(m)?.classList.toggle("active",a);
+  d.style.width = blackPct + "%";
+  d.style.left  = `calc(${leftPct}% + ${blackOffset}%)`;
 
-/* ====== COMPUTER KEYS ====== */
+  d.addEventListener("pointerdown",(e)=>{e.preventDefault(); noteOn(m,110); d.setPointerCapture(e.pointerId);});
+  d.addEventListener("pointerup",()=>noteOff(m));
+  d.addEventListener("pointercancel",()=>noteOff(m));
+
+  bk.appendChild(d);
+  elMap.set(m,d);
+}
+
+function highlight(m,on){
+  const el=elMap.get(m);
+  if(!el) return;
+  el.classList.toggle("active", !!on);
+}
+
+/* ====== COMPUTER KEYS（對齊中間 C4） ====== */
 const kmap={a:60,s:62,d:64,f:65,g:67,h:69,j:71,k:72};
 const down=new Set();
-onkeydown=e=>{const k=e.key.toLowerCase();if(kmap[k]&&!down.has(k)){down.add(k);on(kmap[k])}};
-onkeyup=e=>{const k=e.key.toLowerCase();if(kmap[k]){down.delete(k);off(kmap[k])}};
+window.addEventListener("keydown",(e)=>{
+  const k=e.key.toLowerCase();
+  if(!(k in kmap) || down.has(k)) return;
+  down.add(k);
+  noteOn(kmap[k],100);
+});
+window.addEventListener("keyup",(e)=>{
+  const k=e.key.toLowerCase();
+  if(!(k in kmap)) return;
+  down.delete(k);
+  noteOff(kmap[k]);
+});
 
 /* ====== METRONOME ====== */
-let bpm=120,timer=null,onM=false;
+let bpm=120, timer=null, metroOn=false;
 const btn=document.getElementById("metroBtn");
 const bpmEl=document.getElementById("bpm");
 const bpmT=document.getElementById("bpmText");
+
 const click=()=>{
   ensure();
-  const o=ctx.createOscillator(),g=ctx.createGain();
-  o.frequency.value=1400;o.type="square";
-  g.gain.setValueAtTime(.001,ctx.currentTime);
-  g.gain.exponentialRampToValueAtTime(.2,ctx.currentTime+.01);
-  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.04);
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type="square"; o.frequency.value=1400;
+  const t=ctx.currentTime;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(0.18,t+0.001);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.03);
   o.connect(g).connect(ctx.destination);
-  o.start();o.stop(ctx.currentTime+.05);
+  o.start(t); o.stop(t+0.04);
 };
-btn.onclick=()=>{
-  onM=!onM;
-  btn.textContent=onM?"ON":"OFF";
-  btn.classList.toggle("off",!onM);
+
+function refreshMetro(){
   clearInterval(timer);
-  if(onM){click();timer=setInterval(click,60000/bpm);}
-};
-bpmEl.oninput=()=>{bpm=bpmEl.value;bpmT.textContent=bpm;if(onM){clearInterval(timer);timer=setInterval(click,60000/bpm);}};
+  timer=null;
+  if(metroOn){
+    click();
+    timer=setInterval(click, Math.round(60000/bpm));
+  }
+}
+
+btn.addEventListener("click",()=>{
+  metroOn=!metroOn;
+  btn.textContent=metroOn?"ON":"OFF";
+  btn.classList.toggle("off", !metroOn);
+  refreshMetro();
+});
+
+bpmEl.addEventListener("input",()=>{
+  bpm=Number(bpmEl.value);
+  bpmT.textContent=String(bpm);
+  refreshMetro();
+});
 
 /* ====== MIDI ====== */
 const ms=document.getElementById("midiStatus");
-navigator.requestMIDIAccess?.().then(acc=>{
-  ms.textContent="READY";
-  for(const i of acc.inputs.values()){
-    i.onmidimessage=e=>{
-      const[c,n,v]=e.data;
-      if((c&0xf0)==0x90&&v>0)on(n,v);
-      else if((c&0xf0)==0x80||(c&0xf0)==0x90&&v==0)off(n);
+if(!navigator.requestMIDIAccess){
+  ms.textContent="UNSUPPORTED";
+}else{
+  navigator.requestMIDIAccess().then(acc=>{
+    ms.textContent="READY";
+    const bind=(input)=>{
+      input.onmidimessage=(e)=>{
+        const [status,note,vel]=e.data;
+        const cmd = status & 0xF0;
+        if(cmd===0x90 && vel>0) noteOn(note,vel);
+        else if(cmd===0x80 || (cmd===0x90 && vel===0)) noteOff(note);
+      };
     };
-  }
-}).catch(()=>ms.textContent="BLOCKED");
+    for(const input of acc.inputs.values()) bind(input);
+    acc.onstatechange=()=>{ for(const input of acc.inputs.values()) bind(input); };
+  }).catch(()=>ms.textContent="BLOCKED");
+}
 
 })();
 </script>
